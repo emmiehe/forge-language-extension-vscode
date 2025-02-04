@@ -3,7 +3,7 @@
 	"description": "Forge Language Server",
 	"author": "Siddhartha Prasad",
 	"license": "",
-	"version": "3.2.1",
+	"version": "3.3.1",
 	"repository": {
 		"type": "git",
 		"url": ""
@@ -119,7 +119,7 @@
 				"forge.toadusSource": {
 					"scope": "resource",
 					"type": "string",
-					"default": "https://csci1710.github.io/2025/toadusponensfiles",
+					"default": "https://sidprasad.github.io/dirtree/wheatstoremock",
 					"description": "URL used by Toadus Ponens."
 				}
 			}
@@ -235,7 +235,7 @@
 		"execa": "^9.5.2",
 		"firebase": "^9.15.0",
 		"firebase-admin": "^11.4.1",
-		"forge-toadus-parser": "^1.1.1",
+		"forge-toadus-parser": "^1.2.0",
 		"glob": "^8.1.0",
 		"tcp-port-used": "^1.0.2",
 		"ts-node": "^10.9.2",

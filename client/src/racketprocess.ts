@@ -1,4 +1,5 @@
-import { ChildProcess, spawn } from 'child_process';
+import { ChildProcess, spawn, execSync } from 'child_process';
+import * as os from 'os';
 import * as vscode from 'vscode';
 import { Diagnostic, DiagnosticCollection, DiagnosticSeverity } from 'vscode';
 
@@ -97,12 +98,44 @@ export class RacketProcess {
 
 
 	kill(manual: boolean) {
+
+
 		if (this.childProcess) {
 			this.racketKilledManually = manual;
-            this.childProcess.kill();
-            this.cleanup();
+            console.log(`Killing Racket process, PID: ${this.childProcess.pid}.`);
+            const platform = os.platform();
+
+            if (platform === 'win32') {
+                // Use taskkill on Windows
+                try {
+                    execSync(`taskkill /PID ${this.childProcess.pid} /T /F`, { stdio: 'inherit' });
+                    console.log('Racket process killed successfully on Windows');
+					this.userFacingOutput.appendLine('Racket process killed successfully on Windows');
+                } catch (error) {
+                    console.error(`Failed to kill Racket process on Windows:`, error);
+					this.userFacingOutput.appendLine(`Failed to kill Racket process: ${error}`);
+                }
+            } else {
+                // Use SIGTERM on Unix-like systems
+                try {
+                    this.childProcess.kill('SIGTERM');
+                    console.log('Sent SIGTERM to Racket process, waiting for it to terminate...');
+					
+                    // Wait for a few seconds and then forcefully kill if still running
+                    setTimeout(() => {
+                        if (this.childProcess && !this.childProcess.killed) {
+                            console.log('Racket process did not terminate, sending SIGKILL...');
+                            this.childProcess.kill('SIGKILL');
+                        }
+                    }, 5000); // Wait for 5 seconds before sending SIGKILL
+                } catch (error) {
+                    console.error(`Failed to kill Racket process:`, error);
+					this.userFacingOutput.appendLine(`Failed to kill Racket process: ${error}`);
+                }
+            }
+			this.cleanup();
+            this.childProcess = null;
 		}
-		this.childProcess = null;
 	}
 
     private cleanup(): void {
