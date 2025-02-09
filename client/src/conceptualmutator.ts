@@ -478,7 +478,12 @@ export class ConceptualMutator {
 			return body;
 		});
 
-		return sigStrings;
+		// I want to remove duplicates from the sigStrings.
+		// TODO: THIS IS A HACK TO DEAL WITH SCENARIOS WHERE MULTIPLE SIGS ARE DEFINED IN THE SAME LINE
+
+		const sigStringsSet = new Set(sigStrings);
+		return Array.from(sigStringsSet);
+
 	}
 
 	/**
