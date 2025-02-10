@@ -83,7 +83,7 @@ export class HintGenerator {
 
 
 		// Step 1: Download the wheat, and run the STUDENT tests against it.
-		const run_result = await this.runTestsAgainstModel(studentTests, w);
+		const run_result = await this.runTestsAgainstModelWithTimeout(studentTests, w);
 		const w_o = run_result.stderr;
 		const source_text = run_result.runsource;
 
@@ -386,6 +386,36 @@ export class HintGenerator {
 	}
 
 
+
+	private runTestsAgainstModelWithTimeout(tests: string, model: string, timeout: number = 60000): Promise<RunResult> {
+		// This function is a wrapper around runTestsAgainstModel that adds a timeout.
+		return new Promise((resolve, reject) => {
+			// Set a timeout to reject the promise if the operation takes too long
+			const timeoutId = setTimeout(() => {
+				// Show a timeout message in the VS Code error window
+				vscode.window.showErrorMessage("Toadus Ponens timed out.");
+				// Resolve the promise with a timeout result if the operation takes too long
+				resolve(new RunResult("Toadus Ponens timed out.", "", tests));
+			}, timeout);
+	
+			// Call the runTestsAgainstModel function and handle its result
+			this.runTestsAgainstModel(tests, model).then(result => {
+				// Clear the timeout if the operation completes successfully
+				clearTimeout(timeoutId);
+				// Resolve the promise with the result of runTestsAgainstModel
+				resolve(result);
+			}).catch(error => {
+				// Clear the timeout if the operation fails
+				clearTimeout(timeoutId);
+				// Reject the promise with the error from runTestsAgainstModel
+				reject(error);
+			});
+		});
+	}
+
+
+
+
 	private async runTestsAgainstModel(tests: string, model: string): Promise<RunResult> {
 
 		const forgeEvalDiagnostics = vscode.languages.createDiagnosticCollection('Forge Eval');
@@ -529,7 +559,7 @@ export class HintGenerator {
 
 
 		// Step 3. Run the mutant against the autograder tests.
-		const ag_meta = await this.runTestsAgainstModel(autograderTests, mutant);
+		const ag_meta = await this.runTestsAgainstModelWithTimeout(autograderTests, mutant);
 		const ag_output = ag_meta.stderr;
 
 		// Step 4. Extract hints from the output.
@@ -562,7 +592,7 @@ export class HintGenerator {
 		this.logger.log_payload(payload, LogLevel.INFO, Event.THOROUGHNESS_MUTANT);
 
 		const autograderTests = await this.getAutograderTests(testFileName);
-		const ag_meta = await this.runTestsAgainstModel(autograderTests, mutant);
+		const ag_meta = await this.runTestsAgainstModelWithTimeout(autograderTests, mutant);
 		const ag_output = ag_meta.stderr;
 		return await this.tryGetPassingHintsFromAutograderOutput(ag_output, testFileName);
 	}
