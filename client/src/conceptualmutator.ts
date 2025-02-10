@@ -1,7 +1,6 @@
 import { combineTestsWithModel } from './forge-utilities';
 import { getFailingTestData } from './forge-utilities';
-
-
+import * as vscode from 'vscode';
 import {
 	ForgeUtil,
 	Block, SyntaxNode,
@@ -25,8 +24,7 @@ class SkippedTest {
 function isAssertionTest(t: any): t is AssertionTest {
 	return t && typeof t === 'object' && 
 			'prop' in t && 'pred' in t 
-			&& !(t as QuantifiedAssertionTest).quantifier
-			&& !(t as ConsistencyAssertionTest).consistent;
+			&& !('consistent' in t) && !('quantifier' in t);
 }
 
 function isQuantifiedAssertionTest(t: any): t is QuantifiedAssertionTest {
@@ -196,9 +194,6 @@ export class ConceptualMutator {
 		this.full_source_util.processSpec();
 		this.inconsistent_tests = [];
 		this.skipped_tests = [];
-
-
-
 
 
 		// TODO: Maybe this should keep track of the passing and failing tests rather than the calling code.
@@ -645,6 +640,8 @@ export class ConceptualMutator {
 			return;
 		}
 
+		this.testExprReferencesPredUnderTestWarning(test_name, exp, pred);
+
 		this.inconsistent_tests.push(test_name);
 
 		if (rel === "necessary") {
@@ -673,6 +670,7 @@ export class ConceptualMutator {
 		const quantDecls = get_text_from_syntaxnode(a.quantDecls, this.source_text);
 		const quantifiedPrefix = `${quantifier} ${disj} ${quantDecls} | `;
 
+		this.testExprReferencesPredUnderTestWarning(test_name, exp, pred);
 		this.inconsistent_tests.push(test_name);
 		if (rel === "necessary") {
 			this.constrainPredicateByInclusion(pred, exp, quantifiedPrefix, pred_args);
@@ -735,7 +733,7 @@ export class ConceptualMutator {
 			this.skipped_tests.push(new SkippedTest(a.name, `Assertion does not directly test a predicate from the assignment statement.`));
 			return;
 		}
-
+		this.testExprReferencesPredUnderTestWarning(test_name, exp, pred);
 		this.inconsistent_tests.push(test_name);
 		// If isconsistent, then they believe pred & exp is SAT.
 		// SO WE need to EASE the predicate to ALLOW the expression.
@@ -1006,6 +1004,17 @@ export class ConceptualMutator {
 		return false;
 	}
 
+
+	private testExprReferencesPredUnderTestWarning(testname: string, e: string, p: string) {
+
+		// Check if e contains p with word boundaries.
+		const regex = new RegExp(`\\b${p}\\b`);
+		let references_pred = regex.test(e);
+
+		if (references_pred) {
+			vscode.window.showInformationMessage(`Warning: ${testname} references '${p}', on both sides of the assertion. This *may* cause Toadus Ponens to time out.`);
+		}
+	}
 	
 	private getPredArgs(predArgs : SyntaxNode | undefined) : string {
 		if (!predArgs) {
