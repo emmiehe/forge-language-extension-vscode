@@ -30,16 +30,16 @@ const ANALYZED_CONSISTENCY_MESSAGE = `🎉 Analyzed tests are all consistent wit
 										 However, the tests we could not analyze are either 
 										 inconsistent with or test behavior not specified by the problem statement.`;
 
+const TIMEOUT_MESSAGE = "Toadus Ponens timed out.";
+
 export class HintGenerator {
 
 	private SOMETHING_WENT_WRONG = "Something went wrong during Toadus Ponens analysis. While I will still make a best effort to provide useful feedback, consider examining your tests with course staff. You may find it useful to share the the VSCode Error log with them. You can access it as follows: Ctrl-shift-p or cmd-shift-p -> Search Show Logs -> Extension Host";
-	//static WHEATSTORE = "https://csci1710.github.io/2024/toadusponensfiles"; // TODO: This needs to change.
-
 
 	    // Read WHEATSTORE URL from VS Code settings
 	static get WHEATSTORE(): string {
 		const config = vscode.workspace.getConfiguration('forge');
-		return config.get<string>('toadusSource', 'https://csci1710.github.io/2024/toadusponensfiles');
+		return config.get<string>('toadusSource', 'https://csci1710.github.io/2025/toadusponensfiles');
 	}
 
 	logger: Logger;
@@ -86,6 +86,7 @@ export class HintGenerator {
 		const run_result = await this.runTestsAgainstModelWithTimeout(studentTests, w);
 		const w_o = run_result.stderr;
 		const source_text = run_result.runsource;
+		
 
 		// Step 2: If all the tests pass the wheat, we know they are consistent with the problem specification.
 		// We MAY want to generate feedback around thoroughness.
@@ -393,9 +394,9 @@ export class HintGenerator {
 			// Set a timeout to reject the promise if the operation takes too long
 			const timeoutId = setTimeout(() => {
 				// Show a timeout message in the VS Code error window
-				vscode.window.showErrorMessage("Toadus Ponens timed out.");
+				vscode.window.showErrorMessage(TIMEOUT_MESSAGE);
 				// Resolve the promise with a timeout result if the operation takes too long
-				resolve(new RunResult("Toadus Ponens timed out.", "", tests));
+				resolve(new RunResult(TIMEOUT_MESSAGE, TIMEOUT_MESSAGE, tests));
 			}, timeout);
 	
 			// Call the runTestsAgainstModel function and handle its result
@@ -562,6 +563,11 @@ export class HintGenerator {
 		const ag_meta = await this.runTestsAgainstModelWithTimeout(autograderTests, mutant);
 		const ag_output = ag_meta.stderr;
 
+		if (ag_output == TIMEOUT_MESSAGE) {
+			return [TIMEOUT_MESSAGE];
+		}
+
+
 		// Step 4. Extract hints from the output.
 		return await this.tryGetFailingHintsFromAutograderOutput(ag_output, testFileName);
 	}
@@ -594,6 +600,11 @@ export class HintGenerator {
 		const autograderTests = await this.getAutograderTests(testFileName);
 		const ag_meta = await this.runTestsAgainstModelWithTimeout(autograderTests, mutant);
 		const ag_output = ag_meta.stderr;
+
+		if (ag_output == TIMEOUT_MESSAGE) {
+			return [TIMEOUT_MESSAGE];
+		}
+
 		return await this.tryGetPassingHintsFromAutograderOutput(ag_output, testFileName);
 	}
 

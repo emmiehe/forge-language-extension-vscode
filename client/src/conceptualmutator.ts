@@ -25,8 +25,7 @@ class SkippedTest {
 function isAssertionTest(t: any): t is AssertionTest {
 	return t && typeof t === 'object' && 
 			'prop' in t && 'pred' in t 
-			&& !(t as QuantifiedAssertionTest).quantifier
-			&& !(t as ConsistencyAssertionTest).consistent;
+			&& !('consistent' in t) && !('quantifier' in t);
 }
 
 function isQuantifiedAssertionTest(t: any): t is QuantifiedAssertionTest {
@@ -1002,6 +1001,18 @@ export class ConceptualMutator {
 			const isConsistent = ca.consistent;
 			return this.isInstructorAuthored(p) && !isConsistent;
 		}
+
+		return false;
+	}
+
+
+	private testExprReferencesPredUnderTest(e: string, p: string): boolean {
+
+		// Check if e contains p with word boundaries.
+		const regex = new RegExp(`\\b${p}\\b`);
+		return regex.test(e);
+
+
 
 		return false;
 	}
