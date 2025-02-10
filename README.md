@@ -10,8 +10,3 @@ Amongst other things, this extension provides support for:
 - [Cope and Drag](https://github.com/sidprasad/copeanddrag) a lightweight
 diagramming tool.
 
-
-
-# ISSUE:
-
-I think function definitions are broken!
