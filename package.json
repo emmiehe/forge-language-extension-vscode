@@ -3,7 +3,7 @@
 	"description": "Forge Language Server",
 	"author": "Siddhartha Prasad",
 	"license": "",
-	"version": "3.3.3",
+	"version": "3.4.0",
 	"repository": {
 		"type": "git",
 		"url": ""
