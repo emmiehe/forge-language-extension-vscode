@@ -388,7 +388,7 @@ export class HintGenerator {
 
 
 
-	private runTestsAgainstModelWithTimeout(tests: string, model: string, timeout: number = 60000): Promise<RunResult> {
+	private runTestsAgainstModelWithTimeout(tests: string, model: string, timeout: number = 120000): Promise<RunResult> {
 		// This function is a wrapper around runTestsAgainstModel that adds a timeout.
 		return new Promise((resolve, reject) => {
 			// Set a timeout to reject the promise if the operation takes too long
