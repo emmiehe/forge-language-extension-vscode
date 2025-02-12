@@ -9,6 +9,7 @@ import {
 	ConsistencyAssertionTest, Expr,
 	Formula
 } from "forge-toadus-parser";
+import G from 'glob';
 
 
 const negationRegex = /(not|!)\s*(\b\w+\b)/;
@@ -378,56 +379,32 @@ export class ConceptualMutator {
 			}
 
 			const testName = testData.name;
-			const testType = testData.type;
+			const testType = testData.type; // Can we do better here?
 
-			if (testType == "example") {
-				const e = this.getExampleByName(testName);
-				if (e == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
+
+			const asExample = this.getExampleByName(testName);
+			const asAssertion = this.getAssertion(testData.startRow, testData.startCol);
+			const asQuantifiedAssertion = this.getQuantifiedAssertion(testData.startRow, testData.startCol);
+			const asConsistencyAssertion = this.getConsistencyAssertion(testData.startRow, testData.startCol);
+			const asSatisfiabilityAssertion = this.getSatisfactionAssertion(testData.startRow, testData.startCol);
+
+
+
+			if (asExample) {
+				const e = asExample;
 				this.mutateToExample(e);
 			}
-			else if (testType == "quantified_assertion") {
-				const start_row = testData.startRow;
-				const start_col = testData.startCol;
-
-				const a = this.getQuantifiedAssertion(start_row, start_col);
-				if (a == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
-				this.mutateToQuantifiedAssertion(a);
+			else if (asQuantifiedAssertion) {
+				this.mutateToQuantifiedAssertion(asQuantifiedAssertion);
 			}
-			else if (testType == "assertion") {
-
-				const start_row = testData.startRow;
-				const start_col = testData.startCol;
-				const a = this.getAssertion(start_row, start_col);
-				if (a == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
-				this.mutateToAssertion(a);
+			else if (asAssertion) {
+				this.mutateToAssertion(asAssertion);
 			}
-			else if (testType == "consistency_assertion") {
-				const start_row = testData.startRow;
-				const start_col = testData.startCol;
-				const a = this.getConsistencyAssertion(start_row, start_col);
-				if (a == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
-				this.mutateToConsistencyAssertion(a);
-			}
-			else if (testType == "satisfiability_assertion") {
-				this.skipped_tests.push(new SkippedTest(testName, `Cannot analyze sat/unsat assertions.`));
-			}
-			else if (testType == "test-expect") {
-				this.skipped_tests.push(new SkippedTest(testName, `Cannot analyze test expects.`));
+			else if (asConsistencyAssertion) {
+				this.mutateToConsistencyAssertion(asConsistencyAssertion);
 			}
 			else if (testName != "") {
-				this.skipped_tests.push(new SkippedTest(testName, `Unsupported test type.`));
+				this.skipped_tests.push(new SkippedTest(testName, `Unsupported test type. Cannot analyze sat/unsat assertions or test expects.`));
 			}
 		}
 		return this.num_mutations;

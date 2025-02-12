@@ -67,15 +67,18 @@ export function findForgeExamples(inputText) {
  * Regex for extracting failing test names, types, and/or locations
  */
 export const example_regex = 			  	/Invalid example '(\w+)'; the instance specified does not satisfy the given predicate\./;
-const quantified_assertion_regex = 	/:(\d+):(\d+) \(span (\d+)\)\] Test quantified_(\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
-const assertion_regex = 				/:(\d+):(\d+) \(span (\d+)\)\] Test (\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
-const consistency_assertion_regex =  /:(\d+):(\d+) \(span (\d+)\)\] Failed test (consistent|inconsistent)_assertion_for_(\w+)_([^\s\\]*)/;
-const satisfaction_assertion_regex = /:(\d+):(\d+) \(span (\d+)\)\] Failed test (sat|unsat|forge_error)_assertion_([^\s\\]*)/;
+// const quantified_assertion_regex = 	/:(\d+):(\d+) \(span (\d+)\)\] Test quantified_(\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
+// const assertion_regex = 				/:(\d+):(\d+) \(span (\d+)\)\] Test (\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
+// const consistency_assertion_regex =  /:(\d+):(\d+) \(span (\d+)\)\] Failed test (consistent|inconsistent)_assertion_for_(\w+)_([^\s\\]*)/;
+// const satisfaction_assertion_regex = /:(\d+):(\d+) \(span (\d+)\)\] Failed test (sat|unsat|forge_error)_assertion_([^\s\\]*)/;
+
+
+const test_with_span_regex = /:(\d+):(\d+) \(span (\d+)\)\] (?:Failed test (\w+)|Test (\w+) failed)\./;
 const test_regex = 					/Failed test (\w+)\.|Theorem (\w+) failed|Test (\w+) failed\./;
 
 export class TestData {
 
-	constructor(public name: string, public type: string, public startRow: number,
+	constructor(public name: string, public startRow: number,
 		public startCol: number, public span: number, public forgeOutput: string){ }
 }
 
@@ -91,62 +94,56 @@ export function getFailingTestsData(o: string): TestData[] {
 // TODO: Should we abstract out getting the test NAME, type, and location?
 export function getFailingTestData(o: string): TestData {
 
-	// TODO: Rewrite.
-	// If a test HAS a name ...
 
 
+	// if (quantified_assertion_regex.test(o)) {
+	// 	const match = o.match(quantified_assertion_regex);
+
+	// 	if (match == null) {
+	// 		return undefined;
+	// 	}
+
+	// 	let testName = match[4] + "_quantified_assertion_for_" + match[5] + "_" + match[6];
+	// 	return new TestData(testName,
+	// 						"quantified_assertion",
+	// 						 parseInt(match[1]),
+	// 						 parseInt(match[2]),
+	// 						 parseInt(match[3]), o);
+
+	// 	// Entire string is match[0]
+	// 	// Line number is match[1]
+	// 	// Column number is match[2]
+	// 	// Span is match[3]
+	// 	// Direction of assertion is match[4]
+	// 	// Predicate name is match[5]
+	// 	// Temp name is match[6]
+
+	// } else if (assertion_regex.test(o)) {
+	// 	const match = o.match(assertion_regex);
+	// 	if (match == null) {
+	// 		return undefined;
+	// 	}
 
 
-	// Else if a test is IMPLICITLY named, ...
+	// 	// Entire string is match[0]
+	// 	// Line number is match[1]
+	// 	// Column number is match[2]
+	// 	// Span is match[3]
+	// 	// Direction of assertion is match[4]
+	// 	// Predicate name is match[5]
+	// 	// Temp name is match[6]
 
+	// 	let test_name = match[4] + "_assertion_for_" + match[5] + "_" + match[6];
+	// 	return new TestData(test_name,
+	// 						"assertion",
+	// 						 parseInt(match[1]),
+	// 						 parseInt(match[2]),
+	// 						 parseInt(match[3]), o);
 
-
-
-	if (quantified_assertion_regex.test(o)) {
-		const match = o.match(quantified_assertion_regex);
-
-		if (match == null) {
-			return undefined;
-		}
-
-		let testName = match[4] + "_quantified_assertion_for_" + match[5] + "_" + match[6];
-		return new TestData(testName,
-							"quantified_assertion",
-							 parseInt(match[1]),
-							 parseInt(match[2]),
-							 parseInt(match[3]), o);
-
-		// Entire string is match[0]
-		// Line number is match[1]
-		// Column number is match[2]
-		// Span is match[3]
-		// Direction of assertion is match[4]
-		// Predicate name is match[5]
-		// Temp name is match[6]
-
-	} else if (assertion_regex.test(o)) {
-		const match = o.match(assertion_regex);
-		if (match == null) {
-			return undefined;
-		}
-
-
-		// Entire string is match[0]
-		// Line number is match[1]
-		// Column number is match[2]
-		// Span is match[3]
-		// Direction of assertion is match[4]
-		// Predicate name is match[5]
-		// Temp name is match[6]
-
-		let test_name = match[4] + "_assertion_for_" + match[5] + "_" + match[6];
-		return new TestData(test_name,
-							"assertion",
-							 parseInt(match[1]),
-							 parseInt(match[2]),
-							 parseInt(match[3]), o);
-
-	} else if (example_regex.test(o)) {
+	// } else 
+	
+	
+	if (example_regex.test(o)) {
 		const match = o.match(example_regex);
 		if (match == null) {
 			return undefined;
@@ -154,36 +151,19 @@ export function getFailingTestData(o: string): TestData {
 		
 		let test_name = match[1];
 		return new TestData(test_name,
-							"example",
 							 -1,
 							 -1,
 							 -1, o);
 	}
-	else if (consistency_assertion_regex.test(o)) {
-		const match = o.match(consistency_assertion_regex);
-		if (match == null) {
-			return undefined;
-		}
-		let test_name = match[4] + "_assertion_for_" + match[5] + "_" + match[6];
+	else if (test_with_span_regex.test(o)) {
+        const match = o.match(test_with_span_regex);
+        if (match == null) {
+            return undefined;
+        }
 
-		return new TestData(test_name,
-							"consistency_assertion",
-							 parseInt(match[1]),
-							 parseInt(match[2]),
-							 parseInt(match[3]), o);
+        let test_name = match[4] || match[5]; // Use the first non-null match
 
-	}
-	else if (satisfaction_assertion_regex.test(o)) {
-		const match = o.match(satisfaction_assertion_regex);
-		if (match == null) {
-			return undefined;
-		}
-		let test_name = match[4] + "_assertion_" + match[5];
-		return new TestData(test_name,
-							"satisfaction_assertion",
-							 parseInt(match[1]),
-							 parseInt(match[2]),
-							 parseInt(match[3]), o);
+        return new TestData(test_name, parseInt(match[1]), parseInt(match[2]), parseInt(match[3]), o);
 	}
 	else if (test_regex.test(o)) {
 		const match = o.match(test_regex);
@@ -194,7 +174,6 @@ export function getFailingTestData(o: string): TestData {
 		let test_name = (match[1]) ? match[1] : (match[2]) ? match[2] : match[3];
 
 		return new TestData(test_name,
-							"test-expect",
 							 -1,
 							 -1,
 							 -1, o);
