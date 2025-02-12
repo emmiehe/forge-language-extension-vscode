@@ -379,14 +379,14 @@ export class ConceptualMutator {
 			}
 
 			const testName = testData.name;
-			const testType = testData.type; // Can we do better here?
+
 
 
 			const asExample = this.getExampleByName(testName);
 			const asAssertion = this.getAssertion(testData.startRow, testData.startCol);
 			const asQuantifiedAssertion = this.getQuantifiedAssertion(testData.startRow, testData.startCol);
 			const asConsistencyAssertion = this.getConsistencyAssertion(testData.startRow, testData.startCol);
-			const asSatisfiabilityAssertion = this.getSatisfactionAssertion(testData.startRow, testData.startCol);
+			
 
 
 

@@ -72,9 +72,8 @@ export const example_regex = 			  	/Invalid example '(\w+)'; the instance specif
 // const consistency_assertion_regex =  /:(\d+):(\d+) \(span (\d+)\)\] Failed test (consistent|inconsistent)_assertion_for_(\w+)_([^\s\\]*)/;
 // const satisfaction_assertion_regex = /:(\d+):(\d+) \(span (\d+)\)\] Failed test (sat|unsat|forge_error)_assertion_([^\s\\]*)/;
 
-
-const test_with_span_regex = /:(\d+):(\d+) \(span (\d+)\)\] (?:Failed test (\w+)|Test (\w+) failed)\./;
-const test_regex = 					/Failed test (\w+)\.|Theorem (\w+) failed|Test (\w+) failed\./;
+const test_with_span_regex = /:(\d+):(\d+) \(span (\d+)\)\] (?:Failed test ([\w-]+)|Test ([\w-]+) failed)\./;
+const test_regex = /Failed test ([\w-]+)\.|Theorem ([\w-]+) failed|Test ([\w-]+) failed\./;
 
 export class TestData {
 
