@@ -124,9 +124,9 @@ export class RacketProcess {
 					
                     // Wait for a few seconds and then forcefully kill if still running
                     setTimeout(() => {
-						console.log(`SIGKILL: Old PID: ${oldPid}), new PID ${this.childProcess.pid}`);
 						
                         if (this.childProcess && !this.childProcess.killed) {
+							this.userFacingOutput.appendLine(`Racket process did not terminate. Sending SIGKILL ( Old Racket PID: ${oldPid}), Current Racket PID ${this.childProcess.pid})`);
                             console.log('Racket process did not terminate, sending SIGKILL...');
                             this.childProcess.kill('SIGKILL');
                         }
