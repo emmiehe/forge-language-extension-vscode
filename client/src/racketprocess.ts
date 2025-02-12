@@ -102,9 +102,10 @@ export class RacketProcess {
 
 		if (this.childProcess) {
 			this.racketKilledManually = manual;
-            console.log(`Killing Racket process, PID: ${this.childProcess.pid}.`);
-            const platform = os.platform();
 			const oldPid = this.childProcess.pid;
+            console.log(`Killing Racket process, PID: ${oldPid}.`);
+            const platform = os.platform();
+
             if (platform === 'win32') {
                 // Use taskkill on Windows
                 try {
@@ -126,8 +127,7 @@ export class RacketProcess {
                     setTimeout(() => {
 						console.log(`SIGKILL: Old PID: ${oldPid}), new PID ${this.childProcess.pid}`);
 						
-						// Kill the process with a specific pid
-                        if (this.childProcess && !this.childProcess.killed ) {
+                        if (this.childProcess && !this.childProcess.killed) {
                             console.log('Racket process did not terminate, sending SIGKILL...');
                             this.childProcess.kill('SIGKILL');
                         }
