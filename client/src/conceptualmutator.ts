@@ -1027,6 +1027,15 @@ export class ConceptualMutator {
 
 	private getTestName(t: AssertionTest | Example | QuantifiedAssertionTest | ConsistencyAssertionTest): string {
 
+
+		// If t has a name, then we can use that.
+
+		if (t.name) {
+			return t.name;
+		}
+
+
+
 		// The problem here is that
 		// 1. We remove comments in the 'source_text' but not in the 'student_tests'
 		// 2. The student test has stuff above the '//// Do not edit anything above this line ////' line.

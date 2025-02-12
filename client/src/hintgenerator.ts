@@ -555,10 +555,6 @@ export class HintGenerator {
 		const autograderTests = await this.getAutograderTests(testFileName);
 
 
-
-
-
-
 		// Step 3. Run the mutant against the autograder tests.
 		const ag_meta = await this.runTestsAgainstModelWithTimeout(autograderTests, mutant);
 		const ag_output = ag_meta.stderr;

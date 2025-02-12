@@ -61,15 +61,17 @@ export function findForgeExamples(inputText) {
 }
 
 
+//// TODO: Can we fix these?
+
 /****
  * Regex for extracting failing test names, types, and/or locations
  */
 export const example_regex = 			  	/Invalid example '(\w+)'; the instance specified does not satisfy the given predicate\./;
-export const quantified_assertion_regex = 	/:(\d+):(\d+) \(span (\d+)\)\] Test quantified_(\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
-export const assertion_regex = 				/:(\d+):(\d+) \(span (\d+)\)\] Test (\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
-export const consistency_assertion_regex =  /:(\d+):(\d+) \(span (\d+)\)\] Failed test (consistent|inconsistent)_assertion_for_(\w+)_([^\s\\]*)/;
-export const satisfaction_assertion_regex = /:(\d+):(\d+) \(span (\d+)\)\] Failed test (sat|unsat|forge_error)_assertion_([^\s\\]*)/;
-export const test_regex = 					/Failed test (\w+)\.|Theorem (\w+) failed|Test (\w+) failed\./;
+const quantified_assertion_regex = 	/:(\d+):(\d+) \(span (\d+)\)\] Test quantified_(\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
+const assertion_regex = 				/:(\d+):(\d+) \(span (\d+)\)\] Test (\w+)_assertion_for_(\w+)_([^\s\\]*) failed./;
+const consistency_assertion_regex =  /:(\d+):(\d+) \(span (\d+)\)\] Failed test (consistent|inconsistent)_assertion_for_(\w+)_([^\s\\]*)/;
+const satisfaction_assertion_regex = /:(\d+):(\d+) \(span (\d+)\)\] Failed test (sat|unsat|forge_error)_assertion_([^\s\\]*)/;
+const test_regex = 					/Failed test (\w+)\.|Theorem (\w+) failed|Test (\w+) failed\./;
 
 export class TestData {
 
@@ -88,6 +90,16 @@ export function getFailingTestsData(o: string): TestData[] {
 // TODO: This needs to be RE-WRITTEN now that the test name is NOT obvious.
 // TODO: Should we abstract out getting the test NAME, type, and location?
 export function getFailingTestData(o: string): TestData {
+
+	// TODO: Rewrite.
+	// If a test HAS a name ...
+
+
+
+
+	// Else if a test is IMPLICITLY named, ...
+
+
 
 
 	if (quantified_assertion_regex.test(o)) {
