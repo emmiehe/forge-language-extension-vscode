@@ -252,9 +252,20 @@ export class RacketProcess {
 		colnum = Math.max(0, colnum);
 		span = Math.max(1, span);
 
+		// WHAT IF THERE ARE MULTIPLE LINES?
+		// Calculate the end position considering multiple lines
 		const start = new vscode.Position(linenum, colnum);
-		const end = new vscode.Position(linenum, colnum + span);
+		let end: vscode.Position;
+		// const document = vscode.window.activeTextEditor?.document;
+		// if (document) {
+		// 	const startOffset = document.offsetAt(start);
+		// 	const endOffset = startOffset + span;
+		// 	end = document.positionAt(endOffset);
+		//} else {
+			end = new vscode.Position(linenum, colnum + span);
+		//}
 		const range = new vscode.Range(start, end);
+
 
 		return { linenum, colnum, start, end, range, line, index, filename };
 	}

@@ -92,55 +92,6 @@ export function getFailingTestsData(o: string): TestData[] {
 // TODO: This needs to be RE-WRITTEN now that the test name is NOT obvious.
 // TODO: Should we abstract out getting the test NAME, type, and location?
 export function getFailingTestData(o: string): TestData {
-
-
-
-	// if (quantified_assertion_regex.test(o)) {
-	// 	const match = o.match(quantified_assertion_regex);
-
-	// 	if (match == null) {
-	// 		return undefined;
-	// 	}
-
-	// 	let testName = match[4] + "_quantified_assertion_for_" + match[5] + "_" + match[6];
-	// 	return new TestData(testName,
-	// 						"quantified_assertion",
-	// 						 parseInt(match[1]),
-	// 						 parseInt(match[2]),
-	// 						 parseInt(match[3]), o);
-
-	// 	// Entire string is match[0]
-	// 	// Line number is match[1]
-	// 	// Column number is match[2]
-	// 	// Span is match[3]
-	// 	// Direction of assertion is match[4]
-	// 	// Predicate name is match[5]
-	// 	// Temp name is match[6]
-
-	// } else if (assertion_regex.test(o)) {
-	// 	const match = o.match(assertion_regex);
-	// 	if (match == null) {
-	// 		return undefined;
-	// 	}
-
-
-	// 	// Entire string is match[0]
-	// 	// Line number is match[1]
-	// 	// Column number is match[2]
-	// 	// Span is match[3]
-	// 	// Direction of assertion is match[4]
-	// 	// Predicate name is match[5]
-	// 	// Temp name is match[6]
-
-	// 	let test_name = match[4] + "_assertion_for_" + match[5] + "_" + match[6];
-	// 	return new TestData(test_name,
-	// 						"assertion",
-	// 						 parseInt(match[1]),
-	// 						 parseInt(match[2]),
-	// 						 parseInt(match[3]), o);
-
-	// } else 
-	
 	
 	if (example_regex.test(o)) {
 		const match = o.match(example_regex);
