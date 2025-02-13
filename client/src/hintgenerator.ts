@@ -32,6 +32,9 @@ const ANALYZED_CONSISTENCY_MESSAGE = `🎉 Analyzed tests are all consistent wit
 
 const TIMEOUT_MESSAGE = "Toadus Ponens timed out.";
 
+const SKIPPED_TEST_MESSAGE = "Toadus Ponens cannot analyze test-expects or arbitrary assertions of satisfaction (e.g., assert {...} is sat|unsat).";
+const SKIPPED_ADDITIONAL = "Additionally, could not analyze the following tests:\n";
+
 export class HintGenerator {
 
 	private SOMETHING_WENT_WRONG = "Something went wrong during Toadus Ponens analysis. While I will still make a best effort to provide useful feedback, consider examining your tests with course staff. You may find it useful to share the the VSCode Error log with them. You can access it as follows: Ctrl-shift-p or cmd-shift-p -> Search Show Logs -> Extension Host";
@@ -80,7 +83,7 @@ export class HintGenerator {
 		}
 
 		this.forgeOutput.appendLine(`🐸 Step ${++this.step_num}: Analyzing your tests for validity.`);
-
+		
 
 		// Step 1: Download the wheat, and run the STUDENT tests against it.
 		const run_result = await this.runTestsAgainstModelWithTimeout(studentTests, w);
@@ -278,9 +281,11 @@ export class HintGenerator {
 		const assessed_tests = inconsistent_tests.join("\n");
 
 		const skipped_test_count = mutator.skipped_tests.length;
+
+		
 		if (skipped_test_count > 0) {
 			// These are the tests that Toadus Ponens could not analyze.
-			const skipped_tests = "Could not analyze the following tests:\n" + mutator.get_skipped_tests_as_string();
+			const skipped_tests = SKIPPED_ADDITIONAL + mutator.get_skipped_tests_as_string();
 			this.forgeOutput.appendLine(skipped_tests);
 		}
 
@@ -633,9 +638,15 @@ export class HintGenerator {
 		const num_exclusion_mutations = exclusion_mutator.mutatefromExclusionTestIntersection();
 		null_mutator.mutateToVaccuity();
 
+		this.forgeOutput.appendLine(SKIPPED_TEST_MESSAGE);
+		if(inclusion_mutator.skipped_tests.length > 0 || exclusion_mutator.skipped_tests.length > 0) {
+			let skipped_tests = inclusion_mutator.get_skipped_tests_as_string() + '\n' + exclusion_mutator.get_skipped_tests_as_string();
+			// And remove duplicate lines from the skipped tests.
+			skipped_tests = skipped_tests.split("\n").filter((line, index, self) => self.indexOf(line) === index).join("\n");
 
-		const skipped_tests = inclusion_mutator.get_skipped_tests_as_string() + exclusion_mutator.get_skipped_tests_as_string();
-		this.forgeOutput.appendLine(skipped_tests);
+			this.forgeOutput.appendLine(SKIPPED_ADDITIONAL);
+			this.forgeOutput.appendLine(skipped_tests);
+		}
 
 		const tests_analyzed = num_inclusion_mutations + num_exclusion_mutations;
 

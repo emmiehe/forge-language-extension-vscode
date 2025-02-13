@@ -233,6 +233,12 @@ export class ConceptualMutator {
 	}
 
 
+
+
+
+
+	
+
 	
 
 	/**
@@ -252,6 +258,10 @@ export class ConceptualMutator {
 			if (this.isTestOfInclusion(e)) {
 				this.mutateAwayExample(e);
 			}
+			else if (!this.isTestOfExclusion(e)) {
+				this.skipped_tests.push(new SkippedTest(e.name, `Example does not directly test a predicate (or its negation) from the assignment statement.`));
+			}
+
 		}
 
 		for (const a of assertions) {
@@ -263,6 +273,9 @@ export class ConceptualMutator {
 				const pred = a.pred;
 				const exp = get_text_from_syntaxnode(a.prop, this.source_text);
 				this.constrainPredicateByExclusion(pred, exp);
+			}
+			else if (!this.isTestOfExclusion(a)) {
+				this.skipped_tests.push(new SkippedTest(a.name, `Assertion does not directly test a predicate from the assignment statement.`));
 			}
 		}
 
@@ -278,6 +291,9 @@ export class ConceptualMutator {
 				const quantifiedPrefix = `${quantifier} ${disj} ${quantDecls} | `;
 				this.constrainPredicateByExclusion(pred, exp, quantifiedPrefix, pred_args);
 			}
+			else if (!this.isTestOfExclusion(qa)) {
+				this.skipped_tests.push(new SkippedTest(qa.name, `Assertion does not directly test a predicate from the assignment statement.`));
+			}
 		}
 
 		for (const ca of consistencyAssertions) {
@@ -287,6 +303,9 @@ export class ConceptualMutator {
 				const exp = get_text_from_syntaxnode(ca.prop, this.source_text);
 
 				this.constrainPredicateByExclusion(pred, exp);
+			}
+			else if (!this.isTestOfExclusion(ca)) {
+				this.skipped_tests.push(new SkippedTest(ca.name, `Assertion does not directly test a predicate from the assignment statement.`));
 			}
 		}
 
@@ -315,6 +334,9 @@ export class ConceptualMutator {
 				// Ensure the mutant does not accept the example.
 				this.mutateAwayExample(e);
 			}
+			else if (!this.isTestOfInclusion(e)) {
+				this.skipped_tests.push(new SkippedTest(e.name, `Example does not directly test a predicate (or its negation) from the assignment statement.`));
+			}
 		}
 
 		for (const a of assertions) {
@@ -331,6 +353,10 @@ export class ConceptualMutator {
 				// So we want to 
 				this.constrainPredicateByInclusion(pred, exp);
 			}
+			else if (!this.isTestOfInclusion(a)) {
+				this.skipped_tests.push(new SkippedTest(a.name, `Assertion does not directly test a predicate from the assignment statement.`));
+			}
+
 		}
 
 		for (const qa of quantifiedAssertions) {
@@ -348,6 +374,9 @@ export class ConceptualMutator {
 				this.constrainPredicateByInclusion(pred, exp, quantifiedPrefix, pred_args);
 
 			}
+			else if (!this.isTestOfInclusion(qa)) {
+				this.skipped_tests.push(new SkippedTest(qa.name, `Assertion does not directly test a predicate from the assignment statement.`));
+			}
 		}
 
 		for (const ca of consistencyAssertions) {
@@ -356,6 +385,9 @@ export class ConceptualMutator {
 				const pred = ca.pred;
 				const exp = get_text_from_syntaxnode(ca.prop, this.source_text);
 				this.constrainPredicateByExclusion(pred, exp); // Exclude exp from pred.
+			}
+			else if (!this.isTestOfInclusion(ca)) {
+				this.skipped_tests.push(new SkippedTest(ca.name, `Assertion does not directly test a predicate from the assignment statement.`));
 			}
 		}
 
@@ -766,6 +798,11 @@ export class ConceptualMutator {
 		});
 		return skipped_test_strings.join("\n");
 	}
+
+	public get_skipped_tests(): SkippedTest[] {
+		return this.skipped_tests;
+	}
+
 	///////////////////////////////////////////////////////////////////////////////////
 
 
@@ -982,6 +1019,8 @@ export class ConceptualMutator {
 	}
 
 
+	
+
 	private testExprReferencesPredUnderTestWarning(testname: string, e: string, p: string) {
 
 		// Check if e contains p with word boundaries.
@@ -1078,6 +1117,11 @@ export class ConceptualMutator {
 
 		return "unknown_test";
 	}
+
+	
+
+	
+
 
 }
 
