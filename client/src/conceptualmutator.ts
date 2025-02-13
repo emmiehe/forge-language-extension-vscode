@@ -9,6 +9,7 @@ import {
 	ConsistencyAssertionTest, Expr,
 	Formula
 } from "forge-toadus-parser";
+import G from 'glob';
 
 
 const negationRegex = /(not|!)\s*(\b\w+\b)/;
@@ -232,6 +233,12 @@ export class ConceptualMutator {
 	}
 
 
+
+
+
+
+	
+
 	
 
 	/**
@@ -251,6 +258,10 @@ export class ConceptualMutator {
 			if (this.isTestOfInclusion(e)) {
 				this.mutateAwayExample(e);
 			}
+			else if (!this.isTestOfExclusion(e)) {
+				this.skipped_tests.push(new SkippedTest(e.name, `Example does not directly test a predicate (or its negation) from the assignment statement.`));
+			}
+
 		}
 
 		for (const a of assertions) {
@@ -262,6 +273,9 @@ export class ConceptualMutator {
 				const pred = a.pred;
 				const exp = get_text_from_syntaxnode(a.prop, this.source_text);
 				this.constrainPredicateByExclusion(pred, exp);
+			}
+			else if (!this.isTestOfExclusion(a)) {
+				this.skipped_tests.push(new SkippedTest(a.name, `Assertion does not directly test a predicate from the assignment statement.`));
 			}
 		}
 
@@ -277,6 +291,9 @@ export class ConceptualMutator {
 				const quantifiedPrefix = `${quantifier} ${disj} ${quantDecls} | `;
 				this.constrainPredicateByExclusion(pred, exp, quantifiedPrefix, pred_args);
 			}
+			else if (!this.isTestOfExclusion(qa)) {
+				this.skipped_tests.push(new SkippedTest(qa.name, `Assertion does not directly test a predicate from the assignment statement.`));
+			}
 		}
 
 		for (const ca of consistencyAssertions) {
@@ -286,6 +303,9 @@ export class ConceptualMutator {
 				const exp = get_text_from_syntaxnode(ca.prop, this.source_text);
 
 				this.constrainPredicateByExclusion(pred, exp);
+			}
+			else if (!this.isTestOfExclusion(ca)) {
+				this.skipped_tests.push(new SkippedTest(ca.name, `Assertion does not directly test a predicate from the assignment statement.`));
 			}
 		}
 
@@ -314,6 +334,9 @@ export class ConceptualMutator {
 				// Ensure the mutant does not accept the example.
 				this.mutateAwayExample(e);
 			}
+			else if (!this.isTestOfInclusion(e)) {
+				this.skipped_tests.push(new SkippedTest(e.name, `Example does not directly test a predicate (or its negation) from the assignment statement.`));
+			}
 		}
 
 		for (const a of assertions) {
@@ -330,6 +353,10 @@ export class ConceptualMutator {
 				// So we want to 
 				this.constrainPredicateByInclusion(pred, exp);
 			}
+			else if (!this.isTestOfInclusion(a)) {
+				this.skipped_tests.push(new SkippedTest(a.name, `Assertion does not directly test a predicate from the assignment statement.`));
+			}
+
 		}
 
 		for (const qa of quantifiedAssertions) {
@@ -347,6 +374,9 @@ export class ConceptualMutator {
 				this.constrainPredicateByInclusion(pred, exp, quantifiedPrefix, pred_args);
 
 			}
+			else if (!this.isTestOfInclusion(qa)) {
+				this.skipped_tests.push(new SkippedTest(qa.name, `Assertion does not directly test a predicate from the assignment statement.`));
+			}
 		}
 
 		for (const ca of consistencyAssertions) {
@@ -355,6 +385,9 @@ export class ConceptualMutator {
 				const pred = ca.pred;
 				const exp = get_text_from_syntaxnode(ca.prop, this.source_text);
 				this.constrainPredicateByExclusion(pred, exp); // Exclude exp from pred.
+			}
+			else if (!this.isTestOfInclusion(ca)) {
+				this.skipped_tests.push(new SkippedTest(ca.name, `Assertion does not directly test a predicate from the assignment statement.`));
 			}
 		}
 
@@ -378,56 +411,32 @@ export class ConceptualMutator {
 			}
 
 			const testName = testData.name;
-			const testType = testData.type;
 
-			if (testType == "example") {
-				const e = this.getExampleByName(testName);
-				if (e == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
+
+
+			const asExample = this.getExampleByName(testName);
+			const asAssertion = this.getAssertion(testData.startRow, testData.startCol);
+			const asQuantifiedAssertion = this.getQuantifiedAssertion(testData.startRow, testData.startCol);
+			const asConsistencyAssertion = this.getConsistencyAssertion(testData.startRow, testData.startCol);
+			
+
+
+
+			if (asExample) {
+				const e = asExample;
 				this.mutateToExample(e);
 			}
-			else if (testType == "quantified_assertion") {
-				const start_row = testData.startRow;
-				const start_col = testData.startCol;
-
-				const a = this.getQuantifiedAssertion(start_row, start_col);
-				if (a == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
-				this.mutateToQuantifiedAssertion(a);
+			else if (asQuantifiedAssertion) {
+				this.mutateToQuantifiedAssertion(asQuantifiedAssertion);
 			}
-			else if (testType == "assertion") {
-
-				const start_row = testData.startRow;
-				const start_col = testData.startCol;
-				const a = this.getAssertion(start_row, start_col);
-				if (a == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
-				this.mutateToAssertion(a);
+			else if (asAssertion) {
+				this.mutateToAssertion(asAssertion);
 			}
-			else if (testType == "consistency_assertion") {
-				const start_row = testData.startRow;
-				const start_col = testData.startCol;
-				const a = this.getConsistencyAssertion(start_row, start_col);
-				if (a == null) {
-					this.skipped_tests.push(new SkippedTest(testName, `Could not find in source.`));
-					continue;
-				}
-				this.mutateToConsistencyAssertion(a);
-			}
-			else if (testType == "satisfiability_assertion") {
-				this.skipped_tests.push(new SkippedTest(testName, `Cannot analyze sat/unsat assertions.`));
-			}
-			else if (testType == "test-expect") {
-				this.skipped_tests.push(new SkippedTest(testName, `Cannot analyze test expects.`));
+			else if (asConsistencyAssertion) {
+				this.mutateToConsistencyAssertion(asConsistencyAssertion);
 			}
 			else if (testName != "") {
-				this.skipped_tests.push(new SkippedTest(testName, `Unsupported test type.`));
+				this.skipped_tests.push(new SkippedTest(testName, `Unsupported test type. Cannot analyze sat/unsat assertions or test expects.`));
 			}
 		}
 		return this.num_mutations;
@@ -789,6 +798,11 @@ export class ConceptualMutator {
 		});
 		return skipped_test_strings.join("\n");
 	}
+
+	public get_skipped_tests(): SkippedTest[] {
+		return this.skipped_tests;
+	}
+
 	///////////////////////////////////////////////////////////////////////////////////
 
 
@@ -1005,6 +1019,8 @@ export class ConceptualMutator {
 	}
 
 
+	
+
 	private testExprReferencesPredUnderTestWarning(testname: string, e: string, p: string) {
 
 		// Check if e contains p with word boundaries.
@@ -1026,6 +1042,15 @@ export class ConceptualMutator {
 
 
 	private getTestName(t: AssertionTest | Example | QuantifiedAssertionTest | ConsistencyAssertionTest): string {
+
+
+		// If t has a name, then we can use that.
+
+		if (t.name) {
+			return t.name;
+		}
+
+
 
 		// The problem here is that
 		// 1. We remove comments in the 'source_text' but not in the 'student_tests'
@@ -1092,6 +1117,11 @@ export class ConceptualMutator {
 
 		return "unknown_test";
 	}
+
+	
+
+	
+
 
 }
 

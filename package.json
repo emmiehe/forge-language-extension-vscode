@@ -3,7 +3,7 @@
 	"description": "Forge Language Server",
 	"author": "Siddhartha Prasad",
 	"license": "",
-	"version": "3.4.2",
+	"version": "3.4.3",
 	"repository": {
 		"type": "git",
 		"url": ""
@@ -235,7 +235,7 @@
 		"execa": "^9.5.2",
 		"firebase": "^9.15.0",
 		"firebase-admin": "^11.4.1",
-		"forge-toadus-parser": "^1.2.0",
+		"forge-toadus-parser": "^1.2.2",
 		"glob": "^8.1.0",
 		"tcp-port-used": "^1.0.2",
 		"ts-node": "^10.9.2",

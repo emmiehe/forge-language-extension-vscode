@@ -119,6 +119,7 @@ export class RacketProcess {
             } else {
                 // Use SIGTERM on Unix-like systems
                 try {
+					
                     this.childProcess.kill('SIGTERM');
                     console.log('Sent SIGTERM to Racket process, waiting for it to terminate...');
 					
@@ -130,6 +131,7 @@ export class RacketProcess {
                             console.log('Racket process did not terminate, sending SIGKILL...');
                             this.childProcess.kill('SIGKILL');
                         }
+						
                     }, 5000); // Wait for 5 seconds before sending SIGKILL
                 } catch (error) {
                     console.error(`Failed to kill Racket process:`, error);
@@ -250,9 +252,20 @@ export class RacketProcess {
 		colnum = Math.max(0, colnum);
 		span = Math.max(1, span);
 
+		// WHAT IF THERE ARE MULTIPLE LINES?
+		// Calculate the end position considering multiple lines
 		const start = new vscode.Position(linenum, colnum);
-		const end = new vscode.Position(linenum, colnum + span);
+		let end: vscode.Position;
+		// const document = vscode.window.activeTextEditor?.document;
+		// if (document) {
+		// 	const startOffset = document.offsetAt(start);
+		// 	const endOffset = startOffset + span;
+		// 	end = document.positionAt(endOffset);
+		//} else {
+			end = new vscode.Position(linenum, colnum + span);
+		//}
 		const range = new vscode.Range(start, end);
+
 
 		return { linenum, colnum, start, end, range, line, index, filename };
 	}
