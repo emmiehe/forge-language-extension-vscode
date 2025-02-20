@@ -66,15 +66,20 @@ function getExprFromBracesIfAny(s: string): string {
 class HydratedPredicate {
 	constructor(
 		public name: string,
-		public params: Record<string, string>,
+		public params: [string, string][],
 		public body: string
 	) {
 
 	}
 
 	declParams(): string {
+
+		if (this.params.length == 0) {
+			return "";
+		}
+
 		const paramStrings = [];
-		for (const [name, type] of Object.entries(this.params)) {
+		for (const [name, type] of this.params) {
 			paramStrings.push(`${name}: ${type}`);
 		}
 
@@ -214,25 +219,55 @@ export class ConceptualMutator {
 				params_text = params_text.substring(1, params_text.length - 1);
 			}
 
-
-			const params = {};
-			const param_strings = params_text.split(",");
-
-
-
-			for (const param_string of param_strings) {
-				const [name, type] = param_string.split(":");
-				if (name && type) {
-					params[name.trim()] = type.trim();
-				}
-			}
+			const params = ConceptualMutator.parseAlloyParams(params_text);
 			return new HydratedPredicate(name, params, body);
 		}
 
 		this.mutant = this.full_source_util.getPreds().map(predicateToHydratedPredicate);
 	}
 
+	static parseAlloyParams(paramStr: string): [string, string][] {
+		const paramList: [string, string][] = [];
+		let lastType: string | null = null;
 
+		if (!paramStr || paramStr.trim() === "") {
+			return paramList;
+		} 
+	
+		// Split by commas and trim whitespace
+		const parts = paramStr.split(',').map(part => part.trim());
+	
+		// Iterate in reverse to correctly propagate types
+		for (let i = parts.length - 1; i >= 0; i--) {
+			const part = parts[i];
+			const colonIndex = part.indexOf(':');
+	
+			if (colonIndex !== -1) {
+				// Explicit type declaration (e.g., "l: Lock" or "cut0, cut1: Int")
+				const names = part.substring(0, colonIndex).split(/\s+/).map(name => name.trim());
+				const type = part.substring(colonIndex + 1).trim();
+	
+				names.forEach(name => {
+					if (name) paramList.unshift([name, type]); // Maintain correct order
+				});
+	
+				lastType = type; // Update last seen type
+			} else {
+				// Case: Name without explicit type, should inherit lastType
+				if (!lastType) {
+					throw new Error(`Invalid parameter format: "${part}". No previous type to inherit.`);
+				}
+				const names = part.split(/\s+/).map(name => name.trim());
+				names.forEach(name => {
+					if (name) paramList.unshift([name, lastType]); // Maintain correct order
+				});
+			}
+		}
+	
+		return paramList;
+	}
+	
+	
 
 
 
@@ -925,7 +960,7 @@ export class ConceptualMutator {
 		${sigAssignmentsPostfix}
 	`;
 
-		return new HydratedPredicate(e.name, {}, pred_body);
+		return new HydratedPredicate(e.name, [], pred_body);
 	}
 
 
