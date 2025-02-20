@@ -127,9 +127,18 @@ export class RacketProcess {
                     setTimeout(() => {
 						
                         if (this.childProcess && !this.childProcess.killed) {
-							this.userFacingOutput.appendLine(`Racket process did not terminate. Sending SIGKILL ( Old Racket PID: ${oldPid}), Current Racket PID ${this.childProcess.pid})`);
-                            console.log('Racket process did not terminate, sending SIGKILL...');
-                            this.childProcess.kill('SIGKILL');
+
+							if (oldPid === this.childProcess.pid) {
+								this.userFacingOutput.appendLine(`Racket process did not terminate. Sending SIGKILL ( PID: ${oldPid}).`);
+								// kill the process with PID oldPid
+								process.kill(oldPid, 'SIGKILL');
+							}
+							else if (this.isProcessRunning(oldPid)) {
+								// Check if a process with pid oldPid is still running
+
+								// Not killing here in case the PID was reused by another process
+								this.userFacingOutput.appendLine(`The previous racket process MAY not have terminated (PID: ${oldPid}).`);
+							}                            
                         }
 						
                     }, 5000); // Wait for 5 seconds before sending SIGKILL
@@ -286,6 +295,24 @@ export class RacketProcess {
 			vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath), opts);
 		}
 	}
+
+	private isProcessRunning(pid: number): boolean {
+        const platform = os.platform();
+        try {
+            if (platform === 'win32') {
+                // Use tasklist on Windows
+                const result = execSync(`tasklist /FI "PID eq ${pid}" /FO CSV /NH`).toString();
+                return result.includes(`${pid}`);
+            } else {
+                // Use ps on Unix-like systems
+                const result = execSync(`ps -p ${pid}`).toString();
+                return result.includes(`${pid}`);
+            }
+        } catch (error) {
+            return false;
+        }
+    }
+
 }
 
 
