@@ -255,6 +255,7 @@ export class ConceptualMutator {
 			} else {
 				// Case: Name without explicit type, should inherit lastType
 				if (!lastType) {
+					console.log(`Invalid parameter format: "${part}". No previous type to inherit from ${paramStr}.`);
 					throw new Error(`Invalid parameter format: "${part}". No previous type to inherit.`);
 				}
 				const names = part.split(/\s+/).map(name => name.trim());
